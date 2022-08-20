@@ -39,7 +39,7 @@ init flags =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     [ Ports.connectResponse ConnectResponse
-    , Ports.editResponse (always EditResponse)
+    , Ports.editResponse EditResponse
     , Ports.squareChange SquareChange
     ]
         |> Sub.batch

@@ -84,7 +84,7 @@ update msg model =
             , Ports.disconnect ()
             )
 
-        EditResponse ->
+        EditResponse ok ->
             ( { model
                 | sqs =
                     model.set

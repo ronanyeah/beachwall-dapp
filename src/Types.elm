@@ -39,7 +39,7 @@ type Msg
     | Connect (Maybe Int)
     | ConnectResponse String
     | CloseWallets
-    | EditResponse
+    | EditResponse Bool
     | Submit
     | Disconnect
     | ToggleAbout

@@ -103,7 +103,8 @@ const getWallet = (n: number) => {
   app.ports.edit.subscribe(({ n, col }: { n: number; col: [number] }) =>
     (async () => {
       if (!(activeWallet && activeWallet.connected && activeWallet.publicKey)) {
-        return alert("Invalid wallet connection!");
+        alert("Invalid wallet connection!");
+        return app.ports.editResponse.send(false);
       }
 
       const accounts = {
@@ -121,8 +122,11 @@ const getWallet = (n: number) => {
 
       console.log(sig);
 
-      app.ports.editResponse.send(null);
-    })().catch((err) => console.error(err.logs ? [err.logs, err] : err))
+      app.ports.editResponse.send(true);
+    })().catch((err) => {
+      console.error(err.logs ? [err.logs, err] : err);
+      app.ports.editResponse.send(false);
+    })
   );
 })();
 

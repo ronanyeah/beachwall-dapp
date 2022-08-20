@@ -19,7 +19,7 @@ port edit : { n : Int, col : List Int } -> Cmd msg
 port connectResponse : (String -> msg) -> Sub msg
 
 
-port editResponse : (() -> msg) -> Sub msg
+port editResponse : (Bool -> msg) -> Sub msg
 
 
 port squareChange : (List (List Int) -> msg) -> Sub msg
