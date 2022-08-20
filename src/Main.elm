@@ -31,6 +31,7 @@ init flags =
       , selectingWallet = False
       , screen = flags.screen
       , about = False
+      , editInProg = Nothing
       }
     , Cmd.none
     )

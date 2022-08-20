@@ -446,7 +446,7 @@ viewSelect model =
                         |> el [ Font.size 25 ]
                     , [ "("
                       , String.fromInt (x + 1)
-                      , ","
+                      , ", "
                       , String.fromInt (y + 1)
                       , ")"
                       ]
@@ -494,26 +494,40 @@ viewSelect model =
                             , label = none
                             }
                   in
-                  [ bx
+                  [ [ italic "Current color"
+                    , bx
                         (model.sqs
                             |> Array.get x
                             |> Maybe.andThen (Array.get y)
                             |> Maybe.withDefault grey
                         )
+                        |> el [ centerX ]
+                    ]
+                        |> column [ spacing 5 ]
                   , text "➡"
-                        |> el [ Font.size 25 ]
+                        |> el [ Font.size 25, centerY ]
 
                   --, bx model.color.color
-                  , selector
+                  , [ italic "New color"
+                    , selector
+                        |> el [ centerX ]
+                    ]
+                        |> column [ spacing 5 ]
                   ]
                     |> row [ centerX, spacing 20 ]
 
                 --, text model.color.hex
-                , btn "Submit" Submit
-                    |> el [ centerX ]
+                , (if model.editInProg == Nothing then
+                    btn "Submit" (Submit ( x, y ))
+
+                   else
+                    spinner
+                        |> el [ centerY ]
+                  )
+                    |> el [ centerX, height <| px 46 ]
                 ]
                     |> column
-                        [ spacing 20
+                        [ spacing 15
                         , padding 10
                         , centerX
 
@@ -535,6 +549,10 @@ spinner =
 fadeIn : Attribute msg
 fadeIn =
     style "animation" "fadeIn 1s"
+
+
+italic =
+    text >> el [ Font.italic, Font.size 15 ]
 
 
 para txt =

@@ -40,22 +40,20 @@ update msg model =
             , Cmd.none
             )
 
-        Submit ->
-            ( model
-            , model.set
-                |> unwrap Cmd.none
-                    (\( x, y ) ->
-                        Ports.edit
-                            { n = (size * x) + y
-                            , col =
-                                model.color.color
-                                    |> Element.toRgb
-                                    |> (\{ red, green, blue } ->
-                                            [ red * 255, green * 255, blue * 255 ]
-                                       )
-                                    |> List.map round
-                            }
-                    )
+        Submit ( x, y ) ->
+            ( { model
+                | editInProg = Just ( model.color.color, ( x, y ) )
+              }
+            , Ports.edit
+                { n = (size * x) + y
+                , col =
+                    model.color.color
+                        |> Element.toRgb
+                        |> (\{ red, green, blue } ->
+                                [ red * 255, green * 255, blue * 255 ]
+                           )
+                        |> List.map round
+                }
             )
 
         Connect mn ->
@@ -87,15 +85,20 @@ update msg model =
         EditResponse ok ->
             ( { model
                 | sqs =
-                    model.set
-                        |> unwrap model.sqs
-                            (\( x, y ) ->
-                                model.sqs
-                                    |> Array.Extra.update x
-                                        (Array.Extra.update y
-                                            (always model.color.color)
-                                        )
-                            )
+                    if ok then
+                        model.editInProg
+                            |> unwrap model.sqs
+                                (\( color, ( x, y ) ) ->
+                                    model.sqs
+                                        |> Array.Extra.update x
+                                            (Array.Extra.update y
+                                                (always color)
+                                            )
+                                )
+
+                    else
+                        model.sqs
+                , editInProg = Nothing
               }
             , Cmd.none
             )

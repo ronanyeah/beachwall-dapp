@@ -13,6 +13,7 @@ type alias Model =
     , screen : Screen
     , about : Bool
     , wide : Bool
+    , editInProg : Maybe ( Color, ( Int, Int ) )
     }
 
 
@@ -40,7 +41,7 @@ type Msg
     | ConnectResponse String
     | CloseWallets
     | EditResponse Bool
-    | Submit
+    | Submit ( Int, Int )
     | Disconnect
     | ToggleAbout
     | SquareChange (List (List Int))
