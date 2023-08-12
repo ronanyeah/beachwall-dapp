@@ -1,12 +1,12 @@
-port module Ports exposing (connect, connectResponse, disconnect, edit, editResponse, squareChange)
+port module Ports exposing (..)
 
 -- OUT
 
 
-port connect : Int -> Cmd msg
+port connect : () -> Cmd msg
 
 
-port disconnect : () -> Cmd msg
+port log : String -> Cmd msg
 
 
 port edit : { n : Int, col : List Int } -> Cmd msg
@@ -17,6 +17,9 @@ port edit : { n : Int, col : List Int } -> Cmd msg
 
 
 port connectResponse : (String -> msg) -> Sub msg
+
+
+port disconnect : (() -> msg) -> Sub msg
 
 
 port editResponse : (Bool -> msg) -> Sub msg

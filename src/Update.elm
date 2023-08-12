@@ -56,19 +56,11 @@ update msg model =
                 }
             )
 
-        Connect mn ->
-            mn
-                |> unwrap
-                    ( { model | selectingWallet = True }, Cmd.none )
-                    (\n ->
-                        ( model, Ports.connect n )
-                    )
+        Connect ->
+            ( model, Ports.connect () )
 
         ConnectResponse w ->
             ( { model | wallet = Just w, set = Nothing }, Cmd.none )
-
-        CloseWallets ->
-            ( { model | selectingWallet = False }, Cmd.none )
 
         ToggleAbout ->
             ( { model | about = not model.about }, Cmd.none )
@@ -77,9 +69,8 @@ update msg model =
             ( { model
                 | wallet = Nothing
                 , set = Nothing
-                , selectingWallet = False
               }
-            , Ports.disconnect ()
+            , Cmd.none
             )
 
         EditResponse ok ->

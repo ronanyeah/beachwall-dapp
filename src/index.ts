@@ -1,48 +1,33 @@
 const { Elm } = require("./Main.elm");
 
-import { BaseSignerWalletAdapter } from "@solana/wallet-adapter-base";
+import { Adapter } from "@solana/wallet-adapter-base";
+import { SolanaConnect } from "solana-connect";
 import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-  GlowWalletAdapter,
-  LedgerWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
-import { web3 } from "@project-serum/anchor";
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+  PublicKey,
+  Connection,
+  SystemProgram,
+} from "@solana/web3.js";
 import { BN } from "bn.js";
 import { Squares } from "./codegen/accounts/Squares";
 import { edit } from "./codegen/instructions/edit";
 import { PROGRAM_ID } from "./codegen/programId";
+import { ElmApp } from "./ports";
 
-const connection = new web3.Connection("https://ssc-dao.genesysgo.net/");
+const connection = new Connection(
+  "https://solana-mainnet.rpc.extrnode.com"
+  //{ wsEndpoint: "wss://solana-mainnet.rpc.extrnode.com" }
+);
 
 // eslint-disable-next-line fp/no-let
-let activeWallet: null | BaseSignerWalletAdapter = null;
+let activeWallet: null | Adapter = null;
 
-const getWallet = (n: number) => {
-  const wallet = (() => {
-    switch (n) {
-      case 0: {
-        return new PhantomWalletAdapter();
-      }
-      case 1: {
-        return new SolflareWalletAdapter();
-      }
-      case 2: {
-        return new GlowWalletAdapter();
-      }
-      default: {
-        return new LedgerWalletAdapter();
-      }
-    }
-  })();
-
-  return wallet.readyState === "Installed" || wallet.readyState === "Loadable"
-    ? wallet
-    : null;
-};
+const solConnect = new SolanaConnect();
 
 (async () => {
-  const [canvasAddr] = await web3.PublicKey.findProgramAddress(
+  const [canvasAddr] = await PublicKey.findProgramAddress(
     [Buffer.from("canvas1")],
     PROGRAM_ID
   );
@@ -63,46 +48,33 @@ const getWallet = (n: number) => {
     "confirmed"
   );
 
-  const app = Elm.Main.init({
+  const app: ElmApp = Elm.Main.init({
     node: document.getElementById("app"),
     flags: {
       sqs: data?.squares,
+      //sqs: Array.from(new Array(1600)).map(() => [255, 255, 255]),
       screen: { width: window.innerWidth, height: window.innerHeight },
+      wallet: null,
     },
   });
 
-  app.ports.disconnect.subscribe(() => {
-    // eslint-disable-next-line fp/no-mutation
-    activeWallet = null;
+  solConnect.onWalletChange((wallet) => {
+    if (wallet && wallet.publicKey) {
+      // eslint-disable-next-line fp/no-mutation
+      activeWallet = wallet;
+      app.ports.connectResponse.send(wallet.publicKey.toString());
+    } else {
+      app.ports.disconnect.send(null);
+    }
   });
 
-  app.ports.connect.subscribe(async (id: number) => {
-    const wallet = getWallet(id);
-
-    if (!wallet) {
-      return alert("Not available!");
-    }
-
-    await wallet.connect();
-
-    if (!wallet.connected) {
-      console.log("reconnect");
-      await wallet.connect();
-    }
-
-    if (!wallet.publicKey) {
-      return alert("Invalid wallet connection!");
-    }
-
-    // eslint-disable-next-line fp/no-mutation
-    activeWallet = wallet;
-
-    app.ports.connectResponse.send(wallet.publicKey.toString());
+  app.ports.connect.subscribe(async () => {
+    solConnect.openMenu();
   });
 
-  app.ports.edit.subscribe(({ n, col }: { n: number; col: [number] }) =>
+  app.ports.edit.subscribe(({ n, col }) =>
     (async () => {
-      if (!(activeWallet && activeWallet.connected && activeWallet.publicKey)) {
+      if (!(activeWallet && activeWallet.publicKey)) {
         alert("Invalid wallet connection!");
         return app.ports.editResponse.send(false);
       }
@@ -110,16 +82,12 @@ const getWallet = (n: number) => {
       const accounts = {
         payer: activeWallet.publicKey,
         squares: canvasAddr,
-        systemProgram: web3.SystemProgram.programId,
+        systemProgram: SystemProgram.programId,
       };
 
-      const transaction = new web3.Transaction();
-
       const ix = edit({ index: new BN(n), value: col }, accounts);
-      transaction.add(ix);
 
-      const sig = await launch(activeWallet, transaction);
-
+      const sig = await launch(activeWallet, [ix]);
       console.log(sig);
 
       app.ports.editResponse.send(true);
@@ -128,22 +96,23 @@ const getWallet = (n: number) => {
       app.ports.editResponse.send(false);
     })
   );
-})();
+})().catch(console.error);
 
 const launch = async (
-  wallet: BaseSignerWalletAdapter,
-  transaction: web3.Transaction
-) => {
-  const { blockhash } = await connection.getRecentBlockhash();
-
-  /* eslint-disable fp/no-mutation */
-  transaction.recentBlockhash = blockhash;
-  if (wallet.publicKey) {
-    transaction.feePayer = wallet.publicKey;
+  wallet: Adapter,
+  ixs: TransactionInstruction[]
+): Promise<string> => {
+  if (!wallet.publicKey) {
+    throw Error("missing pubkey");
   }
-  /* eslint-enable fp/no-mutation */
 
-  const signedTransaction = await wallet.signTransaction(transaction);
+  const latestBlockHash = await connection.getLatestBlockhash();
+  const messageV0 = new TransactionMessage({
+    payerKey: wallet.publicKey,
+    recentBlockhash: latestBlockHash.blockhash,
+    instructions: ixs,
+  }).compileToV0Message();
+  const tx = new VersionedTransaction(messageV0);
 
-  return connection.sendRawTransaction(signedTransaction.serialize());
+  return wallet.sendTransaction(tx, connection);
 };

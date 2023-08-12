@@ -134,32 +134,8 @@ viewTop model =
         |> when (model.wallet == Nothing || model.wide)
     , model.wallet
         |> unwrap
-            (if not model.selectingWallet then
-                btn "👆 Connect Wallet" (Connect Nothing)
-                    |> el [ centerX, fadeIn ]
-
-             else
-                List.range 0 3
-                    |> List.map
-                        (\n ->
-                            btn
-                                (case n of
-                                    0 ->
-                                        "Phantom"
-
-                                    1 ->
-                                        "Solflare"
-
-                                    2 ->
-                                        "Glow"
-
-                                    _ ->
-                                        "Ledger"
-                                )
-                                (Connect (Just n))
-                        )
-                    |> (\xs -> xs ++ [ btn "𐄂" CloseWallets ])
-                    |> wrappedRow [ spacing 10, centerX ]
+            (btn "👆 Connect Wallet" Connect
+                |> el [ centerX, fadeIn ]
             )
             (String.left 11
                 >> (\addr ->
@@ -171,7 +147,7 @@ viewTop model =
                                 |> el [ Font.size 23 ]
                           ]
                             |> column [ spacing 5 ]
-                        , btn "𐄂" Disconnect
+                        , btn "⚙️" Connect
                         ]
                    )
                 >> row [ padding 10, spacing 10, Background.color grey, centerX, fadeIn ]
@@ -293,8 +269,9 @@ viewAbout =
     , para "There are 1600 (40x40) squares which can be changed to any color using a Solana transaction."
     , para "Beachwall is currently live on Mainnet, and is being developed as a contribution to Solana Summer Camp."
     , el [ width fill, height <| px 1, Background.color black ] none
-    , viewPair "Will this be open source?"
-        (para "Yes, the frontend and smart contract code will be made public soon.")
+
+    --, viewPair "Will this be open source?"
+    --(para "Yes, the frontend and smart contract code will be made public soon.")
     , viewPair "Where is the contract?"
         (newTabLink [ Font.underline, hover ]
             { url = "https://explorer.solana.com/address/BW1oTSjMPxvqXjzvtyL1pzb8bwa1XHkdLaHwLC2yV1Ur"

@@ -9,7 +9,6 @@ type alias Model =
     , color : { hex : String, color : Color }
     , wallet : Maybe String
     , set : Maybe ( Int, Int )
-    , selectingWallet : Bool
     , screen : Screen
     , about : Bool
     , wide : Bool
@@ -20,6 +19,7 @@ type alias Model =
 type alias Flags =
     { sqs : List (List Int)
     , screen : Screen
+    , wallet : Maybe String
     }
 
 
@@ -37,9 +37,8 @@ type Msg
             }
         )
     | ConfirmCol ( Int, Int )
-    | Connect (Maybe Int)
+    | Connect
     | ConnectResponse String
-    | CloseWallets
     | EditResponse Bool
     | Submit ( Int, Int )
     | Disconnect

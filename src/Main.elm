@@ -26,14 +26,13 @@ init flags =
             , color = Element.rgb255 0 0 0
             }
       , wide = flags.screen.width >= 1350
-      , wallet = Nothing
+      , wallet = flags.wallet
       , set = Nothing
-      , selectingWallet = False
       , screen = flags.screen
       , about = False
       , editInProg = Nothing
       }
-    , Cmd.none
+    , Ports.log "strt"
     )
 
 
@@ -42,5 +41,6 @@ subscriptions _ =
     [ Ports.connectResponse ConnectResponse
     , Ports.editResponse EditResponse
     , Ports.squareChange SquareChange
+    , Ports.disconnect (always Disconnect)
     ]
         |> Sub.batch
