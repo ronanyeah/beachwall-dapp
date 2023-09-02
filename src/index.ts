@@ -1,6 +1,7 @@
 const { Elm } = require("./Main.elm");
 
 import { Adapter } from "@solana/wallet-adapter-base";
+import { WalletConnectWalletAdapter } from "@solana/wallet-adapter-walletconnect";
 import { SolanaConnect } from "solana-connect";
 import {
   TransactionInstruction,
@@ -24,7 +25,17 @@ const connection = new Connection(
 // eslint-disable-next-line fp/no-let
 let activeWallet: null | Adapter = null;
 
-const solConnect = new SolanaConnect();
+const solConnect = new SolanaConnect({
+  additionalAdapters: [
+    new WalletConnectWalletAdapter({
+      network: "mainnet-beta" as any,
+      options: {
+        projectId: "df6e35a909d8dc573fcf94b5ff7938cf",
+      },
+    }),
+  ],
+  debug: true,
+});
 
 (async () => {
   const [canvasAddr] = await PublicKey.findProgramAddress(
