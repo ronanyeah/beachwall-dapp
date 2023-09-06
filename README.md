@@ -1,6 +1,6 @@
 # Beachwall
 
-This is frontend code for [beachwall.art](https://beachwall.art/), a collaborative pixel art canvas stored on the Solana blockchain.
+This is frontend code for [Beachwall](https://beachwall.netlify.app/), a collaborative pixel art canvas stored on the Solana blockchain.
 
 ## Requirements
 - [npm CLI](https://docs.npmjs.com/)
