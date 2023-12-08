@@ -18,7 +18,7 @@ import { PROGRAM_ID } from "./codegen/programId";
 import { ElmApp } from "./ports";
 
 const connection = new Connection(
-  "https://api.mainnet-beta.solana.com"
+  "https://mainnet.helius-rpc.com/?api-key=d5943963-fe20-4d0f-9286-c44ced75b37c"
   //{ wsEndpoint: "wss://solana-mainnet.rpc.extrnode.com" }
 );
 
@@ -43,7 +43,14 @@ const solConnect = new SolanaConnect({
     PROGRAM_ID
   );
 
-  const data = await Squares.fetch(connection, canvasAddr);
+  const data = await Squares.fetch(connection, canvasAddr).catch((e) => {
+    console.error(e);
+    return {
+      squares: Array.from({ length: 1600 }, () =>
+        Array.from({ length: 3 }, () => Math.floor(Math.random() * 256))
+      ),
+    };
+  });
 
   connection.onAccountChange(
     canvasAddr,
