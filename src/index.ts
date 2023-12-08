@@ -18,7 +18,7 @@ import { PROGRAM_ID } from "./codegen/programId";
 import { ElmApp } from "./ports";
 
 const connection = new Connection(
-  "https://solana-mainnet.rpc.extrnode.com"
+  "https://api.mainnet-beta.solana.com"
   //{ wsEndpoint: "wss://solana-mainnet.rpc.extrnode.com" }
 );
 
